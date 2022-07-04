@@ -1,9 +1,35 @@
-const Books = (props) => {
-  if (!props.show) {
-    return null
-  }
+import { ApolloClient, HttpLink, InMemoryCache, gql } from '@apollo/client';
+import { useEffect, useState } from 'react';
 
-  const books = []
+const Books = (props) => {
+  const [books, setBooks] = useState([]);
+
+  useEffect(() => {
+    const client = new ApolloClient({
+      cache: new InMemoryCache(),
+      link: new HttpLink({
+        uri: 'http://localhost:4000',
+      }),
+    });
+
+    const query = gql`
+      query {
+        allBooks {
+          title
+          author
+          published
+        }
+      }
+    `;
+
+    client.query({ query }).then((response) => {
+      setBooks(response.data.allBooks);
+    });
+  }, []);
+
+  if (!props.show) {
+    return null;
+  }
 
   return (
     <div>
@@ -26,7 +52,7 @@ const Books = (props) => {
         </tbody>
       </table>
     </div>
-  )
-}
+  );
+};
 
-export default Books
+export default Books;
