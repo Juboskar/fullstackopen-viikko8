@@ -1,35 +1,27 @@
-import { ApolloClient, HttpLink, InMemoryCache, gql } from '@apollo/client';
-import { useEffect, useState } from 'react';
+import { gql, useQuery } from '@apollo/client';
+
+const ALL_BOOKS = gql`
+  query {
+    allBooks {
+      title
+      author
+      published
+    }
+  }
+`;
 
 const Books = (props) => {
-  const [books, setBooks] = useState([]);
-
-  useEffect(() => {
-    const client = new ApolloClient({
-      cache: new InMemoryCache(),
-      link: new HttpLink({
-        uri: 'http://localhost:4000',
-      }),
-    });
-
-    const query = gql`
-      query {
-        allBooks {
-          title
-          author
-          published
-        }
-      }
-    `;
-
-    client.query({ query }).then((response) => {
-      setBooks(response.data.allBooks);
-    });
-  }, []);
+  const result = useQuery(ALL_BOOKS);
 
   if (!props.show) {
     return null;
   }
+
+  if (result.loading) {
+    return <div>loading...</div>;
+  }
+
+  const books = result.data.allBooks;
 
   return (
     <div>
