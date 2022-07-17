@@ -1,44 +1,42 @@
-const { v1: uuid } = require('uuid');
+const Book = require('../models/book');
+const Author = require('../models/author');
 
 const resolvers = {
   Mutation: {
-    addBook: (root, args) => {
-      const book = { ...args, id: uuid() };
-      books.push(book);
-      if (!authors.map((a) => a.name).includes(args.author)) {
-        authors.push({ name: args.author, id: uuid() });
-      }
-
-      return book;
-    },
-    editAuthor: (root, args) => {
-      const author = authors.find((a) => a.name === args.name);
+    addBook: async (root, args) => {
+      let author = await Author.findOne({ name: args.author });
       if (!author) {
-        return null;
+        author = await new Author({ name: args.author });
+        author.save();
       }
+      const book = new Book({ ...args, author: author.id });
+      return (await book.save()).populate('author');
+    },
+    editAuthor: async (root, args) => {
+      const author = await Author.findOne({ name: args.name });
+      if (!author) return null;
       author.born = args.setBornTo;
-      return author;
+      return author.save();
     },
   },
   Query: {
-    bookCount: () => books.length,
-    authorCount: () => authors.length,
-    allBooks: (root, args) => {
-      let booksToReturn = books;
+    bookCount: () => Book.collection.countDocuments(),
+    authorCount: () => Author.collection.countDocuments(),
+    allBooks: async (root, args) => {
+      let params = {};
       if (args.author) {
-        booksToReturn = books.filter((b) => b.author === args.author);
+        const author = await Author.findOne({ name: args.author });
+        params.author = author.id;
       }
       if (args.genre) {
-        booksToReturn = booksToReturn.filter((b) =>
-          b.genres.includes(args.genre)
-        );
+        params.genres = args.genre;
       }
-      return booksToReturn;
+      return Book.find(params).populate('author');
     },
-    allAuthors: () => authors,
+    allAuthors: async () => Author.find({}),
   },
   Author: {
-    bookCount: (root) => books.filter((b) => b.author === root.name).length,
+    bookCount: async (root) => await Book.countDocuments({ author: root.id }),
   },
 };
 
