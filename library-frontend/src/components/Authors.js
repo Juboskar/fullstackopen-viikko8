@@ -12,7 +12,9 @@ const Authors = (props) => {
 
   useEffect(() => {
     if (!result.loading) {
-      setAuthorList(result.data.allAuthors);
+      const authors = result.data.allAuthors;
+      setAuthorList(authors);
+      setAuthor(authors[0].name);
     }
   }, [result]);
 
@@ -29,13 +31,14 @@ const Authors = (props) => {
 
     const res = await addBornYear({ variables: { author, bornTo } });
 
-    setAuthor('');
-    setBornTo('');
-
+    setAuthor(authorList[0].name);
+    setBornTo(2000);
     const authorToUpadte = authorList.find(
       (a) => a.name === res.data.editAuthor.name
     );
+    console.log(authorToUpadte);
     const updatedAuthor = { ...authorToUpadte, born: res.data.editAuthor.born };
+    console.log(updatedAuthor);
 
     setAuthorList(
       authorList.map((a) => (a.name === updatedAuthor.name ? updatedAuthor : a))
@@ -65,10 +68,16 @@ const Authors = (props) => {
       <form onSubmit={addNewBornYear}>
         <div>
           author
-          <input
+          <select
             value={author}
             onChange={({ target }) => setAuthor(target.value)}
-          />
+          >
+            {authorList.map((a) => (
+              <option key={a.name} value={a.name}>
+                {a.name}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           born year
