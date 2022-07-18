@@ -1,8 +1,23 @@
 import { useQuery } from '@apollo/client';
+import { useEffect, useState } from 'react';
 import { ALL_BOOKS } from '../queries';
+import _ from 'lodash';
 
 const Books = (props) => {
+  const [books, setBooks] = useState([]);
+  const [genres, setGenres] = useState([]);
   const result = useQuery(ALL_BOOKS);
+
+  useEffect(() => {
+    if (!result.loading) {
+      setBooks(result.data.allBooks);
+    }
+  }, [result]); // eslint-disable-line
+
+  useEffect(() => {
+    const genre_list = books.reduce((L, book) => _.union(book.genres, L), []);
+    setGenres(genre_list);
+  }, [books]);
 
   if (!props.show) {
     return null;
@@ -12,7 +27,16 @@ const Books = (props) => {
     return <div>loading...</div>;
   }
 
-  const books = result.data.allBooks;
+  const filterByGenres = (genre) => {
+    const filteredBook = result.data.allBooks.filter((b) =>
+      b.genres.includes(genre)
+    );
+    setBooks(filteredBook);
+  };
+
+  const reset = () => {
+    setBooks(result.data.allBooks);
+  };
 
   return (
     <div>
@@ -34,6 +58,12 @@ const Books = (props) => {
           ))}
         </tbody>
       </table>
+      {genres.map((g) => (
+        <button key={g} onClick={() => filterByGenres(g)}>
+          {g}
+        </button>
+      ))}
+      <button onClick={reset}>all genres</button>
     </div>
   );
 };
