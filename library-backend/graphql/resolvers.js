@@ -13,14 +13,17 @@ const resolvers = {
         throw new AuthenticationError('not authenticated');
       }
 
-      const author = await Author.findOne({ name: args.author });
+      let author = await Author.findOne({ name: args.author });
 
       if (!author) {
-        new Author({ name: args.author }).save().catch((error) => {
+        try {
+          author = await new Author({ name: args.author });
+          author.save();
+        } catch (error) {
           throw new UserInputError(error.message, {
             invalidArgs: args,
           });
-        });
+        }
       }
 
       try {
