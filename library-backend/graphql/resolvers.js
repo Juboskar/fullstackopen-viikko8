@@ -7,6 +7,15 @@ const JWT_SECRET = require('../utils');
 const { PubSub } = require('graphql-subscriptions');
 const pubsub = new PubSub();
 
+const DataLoader = require('dataloader');
+
+const bookCountLoader = new DataLoader((author_ids) => {
+  const result = author_ids.map((authorId) => {
+    return Book.countDocuments({ author: authorId });
+  });
+  return Promise.resolve(result);
+});
+
 const resolvers = {
   Mutation: {
     addBook: async (root, args, context) => {
@@ -33,6 +42,7 @@ const resolvers = {
         const book = await new Book({ ...args, author: author.id });
         book.save();
         pubsub.publish('BOOK_ADDED', { bookAdded: book.populate('author') });
+        bookCountLoader.clear(author.id);
         return book.populate('author');
       } catch (error) {
         throw new UserInputError(error.message, {
@@ -116,7 +126,9 @@ const resolvers = {
     },
   },
   Author: {
-    bookCount: async (root) => await Book.countDocuments({ author: root.id }),
+    bookCount: async (root) => {
+      return await bookCountLoader.load(root.id);
+    },
   },
 };
 
