@@ -11,8 +11,8 @@ const LoginForm = (props) => {
   useEffect(() => {
     if (result.data) {
       const token = result.data.login.value;
-      props.setToken(token);
       localStorage.setItem('user_token', token);
+      props.setToken(token);
     }
   }, [result]); // eslint-disable-line
 
