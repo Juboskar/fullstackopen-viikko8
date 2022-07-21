@@ -16,7 +16,6 @@ const App = () => {
   }, []);
 
   const logout = () => {
-    console.log(localStorage)
     setToken(null);
     localStorage.clear();
     client.resetStore();
