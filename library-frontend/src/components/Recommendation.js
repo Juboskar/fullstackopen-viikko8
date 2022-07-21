@@ -9,7 +9,6 @@ const Recommendation = (props) => {
   const me = useQuery(ME);
 
   useEffect(() => {
-    console.log(me);
     if (!result.loading && !me.loading) {
       if (!me.data.me) return;
       const filteredBooks = result.data.allBooks.filter((b) =>
@@ -18,6 +17,10 @@ const Recommendation = (props) => {
       setBooks(filteredBooks);
     }
   }, [result, me]); // eslint-disable-line
+
+  if (props.show) {
+    me.refetch();
+  }
 
   if (!props.show) {
     return null;

@@ -15,6 +15,14 @@ const App = () => {
     setToken(localStorage.getItem('user_token'));
   }, []);
 
+  const logout = () => {
+    console.log(localStorage)
+    setToken(null);
+    localStorage.clear();
+    client.resetStore();
+    setPage('login');
+  };
+
   return (
     <div>
       <div>
@@ -24,16 +32,7 @@ const App = () => {
         {token && (
           <>
             <button onClick={() => setPage('add')}>add book</button>
-            <button
-              onClick={() => {
-                localStorage.clear();
-                client.resetStore();
-                setToken(null);
-                setPage('login');
-              }}
-            >
-              logout
-            </button>
+            <button onClick={logout}>logout</button>
             <button onClick={() => setPage('recommendation')}>
               recommendation
             </button>

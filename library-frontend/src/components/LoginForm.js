@@ -14,7 +14,7 @@ const LoginForm = (props) => {
       localStorage.setItem('user_token', token);
       props.setToken(token);
     }
-  }, [result]); // eslint-disable-line
+  }, [result.data]); // eslint-disable-line
 
   if (!props.show) {
     return null;
