@@ -4,6 +4,9 @@ const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = require('../utils');
 
+const { PubSub } = require('graphql-subscriptions');
+const pubsub = new PubSub();
+
 const resolvers = {
   Mutation: {
     addBook: async (root, args, context) => {
@@ -27,9 +30,10 @@ const resolvers = {
       }
 
       try {
-        return (await new Book({ ...args, author: author.id }).save()).populate(
-          'author'
-        );
+        const book = await new Book({ ...args, author: author.id });
+        book.save();
+        pubsub.publish('BOOK_ADDED', { bookAdded: book.populate('author') });
+        return book.populate('author');
       } catch (error) {
         throw new UserInputError(error.message, {
           invalidArgs: args,
@@ -104,6 +108,11 @@ const resolvers = {
     me: (root, args, context) => {
       console.log(context.currentUser);
       return context.currentUser;
+    },
+  },
+  Subscription: {
+    bookAdded: {
+      subscribe: () => pubsub.asyncIterator(['BOOK_ADDED']),
     },
   },
   Author: {
